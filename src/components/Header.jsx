@@ -2,22 +2,39 @@ import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button.jsx';
 
-const Header = ({ currentPage, onPageChange }) => {
+const Header = ({ currentPage, onPageChange, onSectionScroll }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
-    { id: 'inicio', label: 'Início' },
-    { id: 'servicos', label: 'Serviços' },
-    { id: 'portfolio', label: 'Portfólio' },
-    { id: 'contato', label: 'Contato' }
+    { id: 'inicio', label: 'Início', type: 'page' },
+    { id: 'servicos', label: 'Serviços', type: 'section' },
+    { id: 'portfolio', label: 'Portfólio', type: 'section' },
+    { id: 'contato', label: 'Contato', type: 'page' }
   ];
+
+  const handleMenuClick = (item) => {
+    if (item.type === 'page') {
+      onPageChange(item.id);
+    } else if (item.type === 'section') {
+      // Se não estiver na página inicial, navegar para ela primeiro
+      if (currentPage !== 'inicio') {
+        onPageChange('inicio');
+        // Aguardar um pouco para a página carregar antes de fazer scroll
+        setTimeout(() => {
+          onSectionScroll(item.id);
+        }, 100);
+      } else {
+        onSectionScroll(item.id);
+      }
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center cursor-pointer" onClick={() => onPageChange('inicio')}>
             <div className="bg-orange-500 p-2 rounded-lg">
               <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center">
                 <span className="text-orange-500 font-bold text-sm">K</span>
@@ -31,9 +48,11 @@ const Header = ({ currentPage, onPageChange }) => {
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => onPageChange(item.id)}
+                onClick={() => handleMenuClick(item)}
                 className={`text-sm font-medium transition-colors hover:text-orange-500 ${
-                  currentPage === item.id ? 'text-orange-500' : 'text-gray-700'
+                  (currentPage === item.id) || 
+                  (currentPage === 'inicio' && item.type === 'section') 
+                    ? 'text-orange-500' : 'text-gray-700'
                 }`}
               >
                 {item.label}
@@ -71,11 +90,13 @@ const Header = ({ currentPage, onPageChange }) => {
                 <button
                   key={item.id}
                   onClick={() => {
-                    onPageChange(item.id);
+                    handleMenuClick(item);
                     setIsMenuOpen(false);
                   }}
                   className={`block w-full text-left px-3 py-2 text-base font-medium transition-colors hover:text-orange-500 ${
-                    currentPage === item.id ? 'text-orange-500' : 'text-gray-700'
+                    (currentPage === item.id) || 
+                    (currentPage === 'inicio' && item.type === 'section') 
+                      ? 'text-orange-500' : 'text-gray-700'
                   }`}
                 >
                   {item.label}
